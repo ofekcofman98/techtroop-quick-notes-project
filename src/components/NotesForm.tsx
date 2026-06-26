@@ -4,6 +4,8 @@ import Modal from "react-modal";
 import { NoteModal } from "./NoteModal";
 import { type NoteCategory } from "./CategoryItem";
 import { CategoryGrid } from "./CategoryGrid";
+import { FilterSection } from "./FilterSection";
+import { NotesGrid } from "./NotesGrid";
 
 Modal.setAppElement('#root');
 const LOCAL_STORAGE_KEY = "quick_notes";
@@ -21,6 +23,9 @@ const NotesForm = () => {
     const [isModalOpen, setisModalOpen] = useState<boolean>(false);
     const [selectedNote, setselectedNote] = useState<Note | null>(null);
 
+    const [searchInput, setSearchInput] = useState<string>("");
+    const [filterCategories, setFilterCategories] = useState<NoteCategory[]>([]);
+
     useEffect(() => {
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(items));
     },[items]);
@@ -31,6 +36,10 @@ const NotesForm = () => {
 
     const updateNoteTitle = (event: React.ChangeEvent<HTMLInputElement>) => {
         setNoteTitle(event.target.value);
+    };
+
+    const handleInputChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchInput(event.target.value);
     };
 
     const handleAddItem = () => {
@@ -51,6 +60,15 @@ const NotesForm = () => {
         setNoteTitle("");
         setnoteCategory("Other");
     }
+
+    const filteredItems = items.filter(item => {
+        const matchesSearch = 
+            item.text.toLowerCase().includes(searchInput.toLowerCase()) || 
+            (item.title && item.title.toLowerCase().includes(searchInput.toLowerCase()));
+        const matchesCategory = filterCategories.length === 0 || filterCategories.includes(item.category);
+
+        return matchesSearch && matchesCategory;
+    });
 
     const deleteItem = (idToDelete: string) => {
         const isConfirmed = window.confirm("Are you sure you want to delete your note?");
@@ -120,17 +138,19 @@ const NotesForm = () => {
                     <button onClick={handleAddItem}>Add</button>
                 </div>
             </div>
-            
-            <div className="notes-grid">
-                {items.map((item) => (
-                    <NoteItem
-                        key={item.id}
-                        note={item}
-                        onDelete={deleteItem}
-                        onSelect={openModal}
-                    />
-                ))}
-            </div>
+
+            <FilterSection
+                searchValue={searchInput}
+                onChange={handleInputChanged}
+                selectedCategories={filterCategories}
+                onCategoryChange={setFilterCategories}
+            />
+
+            <NotesGrid 
+                notes={filteredItems} 
+                onDelete={deleteItem} 
+                onSelect={openModal} 
+            />
 
             <NoteModal 
                 isOpen={isModalOpen}

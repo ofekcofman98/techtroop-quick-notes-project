@@ -2,7 +2,7 @@ import React from "react";
 import { CATEGORY_COLORS, type NoteCategory } from "./CategoryItem";
 
 interface CategoryGridProps {
-    selectedCategory: NoteCategory;
+    selectedCategory: NoteCategory | null;
     onSelectCategory: (category: NoteCategory) => void;
 }
 
