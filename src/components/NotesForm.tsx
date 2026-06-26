@@ -1,17 +1,29 @@
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { NoteItem, Note } from "./NoteItem";
 import Modal from "react-modal";
 import { NoteModal } from "./NoteModal";
+import { type NoteCategory } from "./CategoryItem";
+import { CategoryGrid } from "./CategoryGrid";
 
 Modal.setAppElement('#root');
+const LOCAL_STORAGE_KEY = "quick_notes";
 
 const NotesForm = () => {
-    const [items, setItems] = useState<Note[]>([]);
+    const [items, setItems] = useState<Note[]>(() => {
+        const savedNotes = localStorage.getItem(LOCAL_STORAGE_KEY);
+        return savedNotes ? JSON.parse(savedNotes) : [];
+    });
+
     const [noteTitle, setNoteTitle] = useState<string>("");
     const [noteText, setNoteText] = useState<string>("");
+    const [noteCategory, setnoteCategory] = useState<NoteCategory>('Personal');
 
     const [isModalOpen, setisModalOpen] = useState<boolean>(false);
     const [selectedNote, setselectedNote] = useState<Note | null>(null);
+
+    useEffect(() => {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(items));
+    },[items]);
 
     const updateNoteText = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
         setNoteText(event.target.value);
@@ -28,7 +40,8 @@ const NotesForm = () => {
             id: crypto.randomUUID(),
             title: noteTitle,
             text: noteText,
-            createdAt: new Date().toLocaleDateString('he-IL')
+            createdAt: new Date().toLocaleDateString('he-IL'),
+            category: noteCategory
         }
 
         setItems(prevItems => [...prevItems, newNote]);
@@ -36,6 +49,7 @@ const NotesForm = () => {
         console.log("new note:", newNote.text);
         setNoteText("");
         setNoteTitle("");
+        setnoteCategory("Other");
     }
 
     const deleteItem = (idToDelete: string) => {
@@ -61,7 +75,8 @@ const NotesForm = () => {
     const handleUpdateNote = (
         id: string,
         updatedTitle: string,
-        updatedText: string
+        updatedText: string,
+        updateCategory: NoteCategory
     ) => {
         setItems(prevItems =>
             prevItems.map(item => {
@@ -70,6 +85,7 @@ const NotesForm = () => {
                         ...item,
                         title: updatedTitle.trim() !== "" ? updatedTitle : undefined,
                         text: updatedText,
+                        category: updateCategory,
                         updatedAt: new Date().toLocaleDateString('he-IL'),
                     };
                 }
@@ -95,7 +111,12 @@ const NotesForm = () => {
                     value={noteText}
                     onChange={updateNoteText}
                 />
+
                 <div className="notes-action">
+                    <CategoryGrid 
+                        selectedCategory={noteCategory} 
+                        onSelectCategory={setnoteCategory} 
+                    />
                     <button onClick={handleAddItem}>Add</button>
                 </div>
             </div>

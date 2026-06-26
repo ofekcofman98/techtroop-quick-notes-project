@@ -1,12 +1,19 @@
 import React, { useState, useEffect } from "react";
 import Modal from "react-modal";
 import { Note } from "./NoteItem";
+import { CategoryGrid } from "./CategoryGrid";
+import { NoteCategory } from "./CategoryItem";
 
 interface NoteModalProps {
     isOpen: boolean;
     note: Note | null;
     onClose: () => void;
-    onUpdate: (id: string, updatedTitle: string, updatedText: string) => void;
+    onUpdate: (
+        id: string, 
+        updatedTitle: string, 
+        updatedText: string, 
+        updateCategory: NoteCategory
+    ) => void;
 }
 
 export const NoteModal: React.FC<NoteModalProps> = ({ 
@@ -17,17 +24,19 @@ export const NoteModal: React.FC<NoteModalProps> = ({
     }) => {
         const [editTitle, setEditTitle] = useState<string>("");
         const [editText, setEditText] = useState<string>("");
+        const [editCategory, setEditCategory] = useState<NoteCategory>("Personal");
 
         useEffect(() => {
             if (note) {
                 setEditTitle(note.title || "");
                 setEditText(note.text);
+                setEditCategory(note.category);
             }
         }, [note]);
 
         const handleSave = () => {
             if (!note || editText.trim() === "") return;
-            onUpdate(note.id, editTitle, editText);
+            onUpdate(note.id, editTitle, editText, editCategory);
         };
 
         return (
@@ -49,6 +58,10 @@ export const NoteModal: React.FC<NoteModalProps> = ({
                             <textarea 
                                 value={editText} 
                                 onChange={(e) => setEditText(e.target.value)} 
+                            />
+                            <CategoryGrid
+                                selectedCategory={editCategory}
+                                onSelectCategory={setEditCategory}
                             />
                             <div className="note-modal-actions">
                                 <button onClick={handleSave}>Update</button>

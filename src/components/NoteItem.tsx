@@ -1,9 +1,12 @@
+import { CategoryItem, NoteCategory } from "./CategoryItem";
+
 export interface Note {
     id: string;
     title?: string,
     text: string;
     createdAt: string;
     updatedAt?: string;
+    category: NoteCategory
 }
 
 interface NoteItemProps {
@@ -20,8 +23,9 @@ export const NoteItem: React.FC<NoteItemProps> = ({ note, onDelete, onSelect }) 
                 <h4>{note.title}</h4>
             )}
             <p className="note-text">{note.text}</p>
+            <CategoryItem category={note.category}/>
             <button className="note-delete-btn" onClick={() => onDelete(note.id)}>
-                ×
+                X
             </button>
         </div>
     )
